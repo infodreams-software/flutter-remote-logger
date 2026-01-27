@@ -61,7 +61,8 @@ class FirebaseLogUploader implements LogUploader {
       await batch.commit();
     } catch (e) {
       // Ignore errors here, resolving old sessions is best-effort
-      print('Error updating old sessions: $e');
+      // TODO: Use a proper logger implementation instead of print
+      // print('Failed to update old sessions: $e');
     }
   }
 }

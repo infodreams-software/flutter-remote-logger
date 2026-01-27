@@ -1,5 +1,3 @@
-library flutter_remote_logger;
-
 export 'src/core/remote_logger.dart';
 export 'src/models/log_entry.dart';
 export 'src/models/session_info.dart';

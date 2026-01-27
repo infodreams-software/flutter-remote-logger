@@ -1,7 +1,7 @@
 name: flutter_remote_logger
 description: A comprehensive remote logging and profiling package for Flutter. Captures sessions, device info, and uploads logs to Firebase or custom backends.
 version: 0.0.1
-repository: https://github.com/example/flutter_via_file
+repository: https://github.com/infodreams-software/flutter-remote-logger
 
 environment:
   sdk: ^3.10.4
