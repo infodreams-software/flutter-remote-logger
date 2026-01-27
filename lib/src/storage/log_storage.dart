@@ -5,4 +5,5 @@ abstract class LogStorage {
   Future<void> initialize(String sessionId);
   Future<void> write(LogEntry entry);
   Future<File?> getSessionFile();
+  Future<List<File>> getOldSessionFiles(String currentSessionId);
 }

@@ -28,4 +28,23 @@ class FileLogStorage implements LogStorage {
   Future<File?> getSessionFile() async {
     return _currentFile;
   }
+
+  @override
+  Future<List<File>> getOldSessionFiles(String currentSessionId) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final logDir = Directory('${dir.path}/logs');
+    if (!await logDir.exists()) {
+      return [];
+    }
+
+    final allFiles = logDir.listSync().whereType<File>().toList();
+    // Assuming file pattern: log_$sessionId.jsonl
+    return allFiles.where((file) {
+      final name = file.path.split('/').last;
+      // Filter out non-logs or current session log
+      return name.startsWith('log_') &&
+          name.endsWith('.jsonl') &&
+          !name.contains(currentSessionId);
+    }).toList();
+  }
 }

@@ -1,3 +1,7 @@
+## 0.1.1
+* Added automatic log uploading (periodic and on startup).
+* Improved `RemoteLogger` initialization to recover orphan sessions.
+
 ## 0.1.0
 * Added `SupabaseLogUploader` for Supabase integration.
 * Added documentation for Supabase setup.
