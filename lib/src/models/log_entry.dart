@@ -1,5 +1,6 @@
 class LogEntry {
   final int timestamp;
+  final String time;
   final String level;
   final String tag;
   final String message;
@@ -7,6 +8,7 @@ class LogEntry {
 
   LogEntry({
     required this.timestamp,
+    required this.time,
     required this.level,
     required this.tag,
     required this.message,
@@ -16,6 +18,7 @@ class LogEntry {
   Map<String, dynamic> toJson() {
     return {
       'timestamp': timestamp,
+      'time': time,
       'level': level,
       'tag': tag,
       'message': message,

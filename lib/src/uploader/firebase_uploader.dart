@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -42,9 +43,7 @@ class FirebaseLogUploader implements LogUploader {
       'linkedAt': FieldValue.serverTimestamp(),
     });
 
-    // 2. Optionally, one could update recent sessions for this device to include the userId
-    // This is expensive if there are many, but useful for the "search a posteriori" requirement.
-    // We will do a best-effort update of the last 10 sessions for this device.
+    // 2. Best-effort update of the last 10 sessions for this device.
     try {
       final recentSessions = await _firestore
           .collection('sessions')
@@ -60,9 +59,16 @@ class FirebaseLogUploader implements LogUploader {
       }
       await batch.commit();
     } catch (e) {
-      // Ignore errors here, resolving old sessions is best-effort
-      // TODO: Use a proper logger implementation instead of print
-      // print('Failed to update old sessions: $e');
+      // Ignore errors here
     }
+  }
+
+  @override
+  Future<void> uploadDeviceInfo(
+    String deviceId,
+    Map<String, dynamic> deviceInfo,
+  ) async {
+    final ref = _storage.ref().child('logs/$deviceId/device_info.json');
+    await ref.putString(jsonEncode(deviceInfo));
   }
 }

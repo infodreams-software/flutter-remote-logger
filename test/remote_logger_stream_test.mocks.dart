@@ -101,6 +101,18 @@ class MockLogUploader extends _i1.Mock implements _i6.LogUploader {
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
           as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> uploadDeviceInfo(
+    String? deviceId,
+    Map<String, dynamic>? deviceInfo,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#uploadDeviceInfo, [deviceId, deviceInfo]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
 }
 
 /// A class which mocks [SessionManager].

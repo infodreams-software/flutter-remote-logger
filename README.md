@@ -25,6 +25,7 @@ A robust **Remote Logging and Profiling** package for Flutter applications.
 
 *   **Session-based Logging**: Every app launch creates a unique Session ID.
 *   **Automatic Metadata**: Captures OS, Version, Device Model, and more automatically.
+*   **Device Identification**: Uploads a `device_info.json` file for easy identification of device specs.
 *   **Local Buffering**: Logs are written to secure local storage (`.jsonl` files) before uploading, preventing data loss on crashes.
 *   **Backend Agnostic**: Comes with built-in uploaders for **Firebase** and **Supabase**, but you can implement your own.
 *   **User Linking**: Link an anonymous device session to a User ID at any point (e.g. after login).

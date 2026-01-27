@@ -47,12 +47,20 @@ void main() {
 
     verify(mockStorage.initialize('test-session-id')).called(1);
 
+    // Verify device info upload
+    verify(
+      mockUploader.uploadDeviceInfo('test-device-id', {'platform': 'test'}),
+    ).called(1);
+
     await logger.log('Test message');
     verify(
       mockStorage.write(
         argThat(
           predicate<LogEntry>(
-            (entry) => entry.message == 'Test message' && entry.level == 'INFO',
+            (entry) =>
+                entry.message == 'Test message' &&
+                entry.level == 'INFO' &&
+                entry.time.isNotEmpty, // Check time field
           ),
         ),
       ),

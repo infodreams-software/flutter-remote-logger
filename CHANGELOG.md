@@ -1,3 +1,8 @@
+## 0.1.3
+* Added `time` field to `LogEntry` for human-readable ISO-8601 timestamps.
+* Automatic upload of `device_info.json` to the device's log folder for easier identification.
+* Updated `RemoteLogger` to handle device info upload on initialization.
+
 ## 0.1.2
 * Added `events` stream to `RemoteLogger` for listening to upload success and errors.
 * Added `RemoteLoggerEvent`, `RemoteLoggerSuccess`, and `RemoteLoggerError` classes.

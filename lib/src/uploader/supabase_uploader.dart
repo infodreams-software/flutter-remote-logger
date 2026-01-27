@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/session_info.dart';
@@ -95,5 +96,28 @@ class SupabaseLogUploader implements LogUploader {
         .update({'user_id': userId})
         .match({'device_id': deviceId})
         .filter('user_id', 'is', null);
+  }
+
+  @override
+  Future<void> uploadDeviceInfo(
+    String deviceId,
+    Map<String, dynamic> deviceInfo,
+  ) async {
+    final fileName = '$deviceId/device_info.json';
+    final jsonString = jsonEncode(deviceInfo);
+
+    // Supabase storage 'uploadBinary' takes Uint8List
+    final bytes = utf8.encode(jsonString);
+
+    await _supabase.storage
+        .from(_storageBucket)
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'application/json',
+          ),
+        );
   }
 }

@@ -67,6 +67,13 @@ class RemoteLogger {
 
       await _storage!.initialize(_currentSession!.sessionId);
 
+      // Upload general device info file for easier identification
+      try {
+        await _uploader!.uploadDeviceInfo(deviceId, deviceMetadata);
+      } catch (e) {
+        log('Failed to upload device info: $e', level: 'WARNING');
+      }
+
       _processOldSessions();
 
       if (autoUploadFrequency != null) {
@@ -149,8 +156,10 @@ class RemoteLogger {
       return;
     }
 
+    final now = DateTime.now();
     final entry = LogEntry(
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: now.millisecondsSinceEpoch,
+      time: now.toIso8601String(),
       level: level,
       tag: tag,
       message: message,
