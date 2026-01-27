@@ -8,6 +8,7 @@ import '../models/session_info.dart';
 import '../storage/log_storage.dart';
 import '../storage/file_log_storage.dart';
 import '../uploader/log_uploader.dart';
+import '../models/remote_logger_event.dart';
 import '../uploader/firebase_uploader.dart';
 
 class RemoteLogger {
@@ -24,6 +25,12 @@ class RemoteLogger {
 
   SessionInfo? _currentSession;
   bool _isInitialized = false;
+
+  final StreamController<RemoteLoggerEvent> _eventController =
+      StreamController<RemoteLoggerEvent>.broadcast();
+
+  /// Stream of events (errors, success) from the logger.
+  Stream<RemoteLoggerEvent> get events => _eventController.stream;
 
   Timer? _uploadTimer;
 
@@ -47,32 +54,35 @@ class RemoteLogger {
     _deviceInfoProvider = deviceInfoProvider ?? DeviceInfoProvider();
 
     // Gather session info
-    final deviceMetadata = await _deviceInfoProvider!.getDeviceMetadata();
-    final deviceId = await _deviceInfoProvider!.getDeviceId();
+    try {
+      final deviceMetadata = await _deviceInfoProvider!.getDeviceMetadata();
+      final deviceId = await _deviceInfoProvider!.getDeviceId();
 
-    _currentSession = SessionInfo(
-      sessionId: _sessionManager!.sessionId,
-      deviceId: deviceId,
-      startTime: _sessionManager!.startTime,
-      deviceMetadata: deviceMetadata,
-    );
+      _currentSession = SessionInfo(
+        sessionId: _sessionManager!.sessionId,
+        deviceId: deviceId,
+        startTime: _sessionManager!.startTime,
+        deviceMetadata: deviceMetadata,
+      );
 
-    await _storage!.initialize(_currentSession!.sessionId);
+      await _storage!.initialize(_currentSession!.sessionId);
 
-    // 1. Recover and upload old sessions (fire and forget)
-    _processOldSessions();
+      _processOldSessions();
 
-    // 2. Start auto-upload timer if requested
-    if (autoUploadFrequency != null) {
-      _uploadTimer = Timer.periodic(autoUploadFrequency, (_) {
-        uploadCurrentSession();
-      });
+      if (autoUploadFrequency != null) {
+        _uploadTimer = Timer.periodic(autoUploadFrequency, (_) {
+          uploadCurrentSession();
+        });
+      }
+
+      _isInitialized = true;
+      log('RemoteLogger initialized. Session: ${_currentSession!.sessionId}');
+    } catch (e, stack) {
+      debugPrint('RemoteLogger initialization failed: $e');
+      _eventController.add(
+        RemoteLoggerError('Initialization failed', error: e, stackTrace: stack),
+      );
     }
-
-    _isInitialized = true;
-
-    // Log internal start
-    log('RemoteLogger initialized. Session: ${_currentSession!.sessionId}');
   }
 
   Future<void> _processOldSessions() async {
@@ -89,35 +99,40 @@ class RemoteLogger {
           tag: 'REMOTE_LOGGER',
         );
 
-        // Extract session ID from filename: log_UUID.jsonl
         final filename = file.path.split('/').last;
         final sessionId = filename
             .replaceAll('log_', '')
             .replaceAll('.jsonl', '');
 
-        // Reconstruct a best-effort SessionInfo
-        // Note: we use current device metadata as we assume it hasn't changed.
-        // Ideally we would read this from the file header if we stored it there.
         final recoveredSession = SessionInfo(
           sessionId: sessionId,
           deviceId: _currentSession!.deviceId,
-          startTime:
-              0, // Unknown start time for rescued files unless we parse filename/metadata
+          startTime: 0,
           deviceMetadata: _currentSession!.deviceMetadata,
-          userId: _currentSession!
-              .userId, // Unknown, defaulting to none or current? safer to keep null/current
+          userId: _currentSession!.userId,
         );
 
         await _uploader!.uploadSession(file, recoveredSession);
 
         // Delete after successful upload to avoid re-uploading
         await file.delete();
+
+        _eventController.add(
+          RemoteLoggerSuccess('Orphan session uploaded: $sessionId'),
+        );
       }
-    } catch (e) {
+    } catch (e, stack) {
       log(
         'Failed to process old sessions: $e',
         level: 'ERROR',
         tag: 'REMOTE_LOGGER',
+      );
+      _eventController.add(
+        RemoteLoggerError(
+          'Failed to process old sessions',
+          error: e,
+          stackTrace: stack,
+        ),
       );
     }
   }
@@ -154,11 +169,24 @@ class RemoteLogger {
       try {
         await _uploader!.uploadSession(file, _currentSession!);
         log('Session uploaded successfully', tag: 'REMOTE_LOGGER');
-      } catch (e) {
+        _eventController.add(
+          RemoteLoggerSuccess(
+            'Session uploaded successfully',
+            fileUrl: file.path,
+          ),
+        );
+      } catch (e, stack) {
         log(
           'Failed to upload session: $e',
           level: 'ERROR',
           tag: 'REMOTE_LOGGER',
+        );
+        _eventController.add(
+          RemoteLoggerError(
+            'Failed to upload session',
+            error: e,
+            stackTrace: stack,
+          ),
         );
       }
     }
@@ -169,10 +197,8 @@ class RemoteLogger {
     if (!_isInitialized || _currentSession == null) return;
 
     try {
-      // 1. Send linking info to remote
       await _uploader!.identifyUser(_currentSession!.deviceId, userId);
 
-      // 2. Update local session info (for future uploads in this session)
       _currentSession = SessionInfo(
         sessionId: _currentSession!.sessionId,
         deviceId: _currentSession!.deviceId,
@@ -182,8 +208,16 @@ class RemoteLogger {
       );
 
       log('User identified: $userId', tag: 'REMOTE_LOGGER');
-    } catch (e) {
+      _eventController.add(RemoteLoggerSuccess('User identified: $userId'));
+    } catch (e, stack) {
       log('Failed to identify user: $e', level: 'ERROR', tag: 'REMOTE_LOGGER');
+      _eventController.add(
+        RemoteLoggerError(
+          'Failed to identify user',
+          error: e,
+          stackTrace: stack,
+        ),
+      );
     }
   }
 
@@ -191,6 +225,9 @@ class RemoteLogger {
   void reset() {
     _uploadTimer?.cancel();
     _uploadTimer = null;
+    // Don't close _eventController here as it's broadcast and intended to live with the app singleton
+    // But we might want to if simulating full shutdown.
+    // Since it's a singleton, usually streams stay open.
     _isInitialized = false;
     _currentSession = null;
     _storage = null;

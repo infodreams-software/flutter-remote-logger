@@ -191,6 +191,23 @@ Logs are locally buffered in files. You can trigger a manual upload of the *curr
 await RemoteLogger().uploadCurrentSession();
 ```
 
+await RemoteLogger().uploadCurrentSession();
+```
+
+### Handling Errors and Events
+
+You can listen to the `events` stream to receive real-time feedback about upload operations, including errors (e.g., network issues, permission denied) and successes.
+
+```dart
+RemoteLogger().events.listen((event) {
+  if (event is RemoteLoggerError) {
+    print('RemoteLogger Error: ${event.message} - ${event.error}');
+  } else if (event is RemoteLoggerSuccess) {
+    print('RemoteLogger Success: ${event.message}');
+  }
+});
+```
+
 ## Architecture
 
 The package is designed to be modular.

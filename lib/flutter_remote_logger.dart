@@ -1,6 +1,7 @@
 export 'src/core/remote_logger.dart';
 export 'src/models/log_entry.dart';
 export 'src/models/session_info.dart';
+export 'src/models/remote_logger_event.dart';
 export 'src/storage/log_storage.dart';
 export 'src/uploader/log_uploader.dart';
 // Also exporting default implementations if users want to extend them

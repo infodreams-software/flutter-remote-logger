@@ -1,3 +1,7 @@
+## 0.1.2
+* Added `events` stream to `RemoteLogger` for listening to upload success and errors.
+* Added `RemoteLoggerEvent`, `RemoteLoggerSuccess`, and `RemoteLoggerError` classes.
+
 ## 0.1.1
 * Added automatic log uploading (periodic and on startup).
 * Improved `RemoteLogger` initialization to recover orphan sessions.
