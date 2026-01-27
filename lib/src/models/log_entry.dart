@@ -1,0 +1,25 @@
+class LogEntry {
+  final int timestamp;
+  final String level;
+  final String tag;
+  final String message;
+  final Map<String, dynamic>? payload;
+
+  LogEntry({
+    required this.timestamp,
+    required this.level,
+    required this.tag,
+    required this.message,
+    this.payload,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'timestamp': timestamp,
+      'level': level,
+      'tag': tag,
+      'message': message,
+      if (payload != null) 'payload': payload,
+    };
+  }
+}
