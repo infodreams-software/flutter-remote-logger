@@ -114,6 +114,8 @@ void main() async {
   // Actually, you typically just let it rely on default imports or pass explicitly:
   await RemoteLogger().initialize(
     uploader: FirebaseLogUploader(),
+    // Optional: Upload logs every 5 minutes automatically
+    autoUploadFrequency: const Duration(minutes: 5),
   );
 
   runApp(MyApp());
