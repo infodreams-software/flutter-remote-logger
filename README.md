@@ -94,7 +94,44 @@ To use Supabase, you need to set up your project with the required tables and st
     create index idx_remote_log_device_links_user on public.remote_log_device_links(user_id);
     ```
 
-4.  **RLS Policies**: Don't forget to enable RLS and add policies to allow `insert` for authenticated/anonymous users as needed.
+4.  **RLS Policies (Database)**:
+    Run this SQL to allow inserts. Adjust policies for production security.
+
+    ```sql
+    -- Enable RLS
+    alter table public.remote_log_sessions enable row level security;
+    alter table public.remote_log_device_links enable row level security;
+
+    -- Allow anyone (anon) to insert sessions
+    create policy "Allow public insert sessions" 
+    on public.remote_log_sessions for insert 
+    with check (true);
+
+    -- Allow anyone to update sessions (needed for upsert/user linking)
+    create policy "Allow public update sessions" 
+    on public.remote_log_sessions for update 
+    using (true);
+
+    -- Allow anyone to insert device links
+    create policy "Allow public insert links" 
+    on public.remote_log_device_links for insert 
+    with check (true);
+    ```
+
+5.  **RLS Policies (Storage)**:
+    You must also enable access to the storage bucket.
+
+    ```sql
+    -- Allow public uploads to 'remote_logs' bucket
+    create policy "Allow public uploads"
+    on storage.objects for insert
+    with check ( bucket_id = 'remote_logs' );
+
+    -- Allow public reads (if you want to access file URLs)
+    create policy "Allow public reads"
+    on storage.objects for select
+    using ( bucket_id = 'remote_logs' );
+    ```
 
 ## Usage
 
