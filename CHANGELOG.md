@@ -1,3 +1,7 @@
+## 0.1.0
+* Added `SupabaseLogUploader` for Supabase integration.
+* Added documentation for Supabase setup.
+
 ## 0.0.1-beta1
 
 * Initial release.
