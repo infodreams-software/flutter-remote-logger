@@ -8,13 +8,14 @@ class FileLogStorage implements LogStorage {
   File? _currentFile;
 
   @override
-  Future<void> initialize(String sessionId) async {
+  Future<void> initialize(String sessionId, {String? groupSessionId}) async {
     final dir = await getApplicationDocumentsDirectory();
     final logDir = Directory('${dir.path}/logs');
     if (!await logDir.exists()) {
       await logDir.create(recursive: true);
     }
-    _currentFile = File('${logDir.path}/log_$sessionId.jsonl');
+    final suffix = groupSessionId != null ? '_$groupSessionId' : '';
+    _currentFile = File('${logDir.path}/log_$sessionId$suffix.flutter.jsonl');
   }
 
   @override
@@ -38,12 +39,12 @@ class FileLogStorage implements LogStorage {
     }
 
     final allFiles = logDir.listSync().whereType<File>().toList();
-    // Assuming file pattern: log_$sessionId.jsonl
+    // Assuming file pattern: log_$sessionId.flutter.jsonl
     return allFiles.where((file) {
       final name = file.path.split('/').last;
       // Filter out non-logs or current session log
       return name.startsWith('log_') &&
-          name.endsWith('.jsonl') &&
+          name.endsWith('.flutter.jsonl') &&
           !name.contains(currentSessionId);
     }).toList();
   }

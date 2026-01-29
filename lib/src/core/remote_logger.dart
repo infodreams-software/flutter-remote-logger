@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'device_info.dart';
 import 'session_manager.dart';
+import 'session_synchronizer.dart';
 import '../models/log_entry.dart';
 import '../models/session_info.dart';
 import '../storage/log_storage.dart';
@@ -25,12 +26,16 @@ class RemoteLogger {
 
   SessionInfo? _currentSession;
   bool _isInitialized = false;
+  bool _isEnabled = true;
 
   final StreamController<RemoteLoggerEvent> _eventController =
       StreamController<RemoteLoggerEvent>.broadcast();
 
   /// Stream of events (errors, success) from the logger.
   Stream<RemoteLoggerEvent> get events => _eventController.stream;
+
+  /// Get the current device ID. Returns null if not initialized.
+  String? get deviceId => _currentSession?.deviceId;
 
   Timer? _uploadTimer;
 
@@ -39,19 +44,45 @@ class RemoteLogger {
   /// [uploader] defaults to [FirebaseLogUploader].
   /// [sessionManager] and [deviceInfoProvider] can be injected for testing.
   /// [autoUploadFrequency] if provided, triggers periodic uploads of the current session.
+  /// [isEnabled] defaults to true. If false, logging and uploading are disabled.
   Future<void> initialize({
     LogStorage? storage,
     LogUploader? uploader,
     SessionManager? sessionManager,
     DeviceInfoProvider? deviceInfoProvider,
     Duration? autoUploadFrequency,
+    bool isEnabled = true,
+    String? groupSessionId,
   }) async {
     if (_isInitialized) return;
+
+    _isEnabled = isEnabled;
+    if (!_isEnabled) {
+      log('RemoteLogger disabled.', level: 'INFO', tag: 'REMOTE_LOGGER');
+      _isInitialized = true;
+      return;
+    }
 
     _storage = storage ?? FileLogStorage();
     _uploader = uploader ?? FirebaseLogUploader();
     _sessionManager = sessionManager ?? SessionManager();
     _deviceInfoProvider = deviceInfoProvider ?? DeviceInfoProvider();
+
+    // Determine groupSessionId
+    String? finalGroupId = groupSessionId;
+    if (finalGroupId == null) {
+      // If no group ID provided, try to synchronize with other platforms
+      // This is a "best effort" synchronization
+      try {
+        final synchronizer = SessionSynchronizer();
+        finalGroupId = await synchronizer.getOrGenerateSessionId();
+      } catch (e) {
+        debugPrint('Failed to synchronize session: $e');
+        // If sync fails, proceed without group ID (or we could generate one locally)
+        // But the requirement implies we want coupling.
+        // If sync fails, we might just degenerate to no-group
+      }
+    }
 
     // Gather session info
     try {
@@ -65,9 +96,13 @@ class RemoteLogger {
         deviceMetadata: deviceMetadata,
       );
 
-      await _storage!.initialize(_currentSession!.sessionId);
+      await _storage!.initialize(
+        _currentSession!.sessionId,
+        groupSessionId: finalGroupId,
+      );
 
       // Upload general device info file for easier identification
+      // ... rest of the method unchanged
       try {
         await _uploader!.uploadDeviceInfo(deviceId, deviceMetadata);
       } catch (e) {
@@ -93,7 +128,10 @@ class RemoteLogger {
   }
 
   Future<void> _processOldSessions() async {
-    if (_storage == null || _uploader == null || _currentSession == null)
+    if (!_isEnabled ||
+        _storage == null ||
+        _uploader == null ||
+        _currentSession == null)
       return;
 
     try {
@@ -109,7 +147,11 @@ class RemoteLogger {
         final filename = file.path.split('/').last;
         final sessionId = filename
             .replaceAll('log_', '')
-            .replaceAll('.jsonl', '');
+            .replaceAll(
+              RegExp(r'(_.*)?\.flutter\.jsonl'),
+              '',
+            ) // Remove suffix and group ID if present
+            .replaceAll('.jsonl', ''); // Fallback for old files
 
         final recoveredSession = SessionInfo(
           sessionId: sessionId,
@@ -151,7 +193,9 @@ class RemoteLogger {
     String tag = 'APP',
     Map<String, dynamic>? payload,
   }) async {
-    if (!_isInitialized) {
+    if (!_isInitialized || !_isEnabled) {
+      if (!_isEnabled && _isInitialized)
+        return; // Silent return if explicitly disabled
       debugPrint('RemoteLogger not initialized. Dropping log: $message');
       return;
     }
@@ -171,7 +215,7 @@ class RemoteLogger {
 
   /// Force upload of the current session logs.
   Future<void> uploadCurrentSession() async {
-    if (!_isInitialized || _currentSession == null) return;
+    if (!_isInitialized || !_isEnabled || _currentSession == null) return;
 
     final file = await _storage!.getSessionFile();
     if (file != null && await file.exists()) {
@@ -203,7 +247,7 @@ class RemoteLogger {
 
   /// Link the current device to a specific user.
   Future<void> identifyUser(String userId) async {
-    if (!_isInitialized || _currentSession == null) return;
+    if (!_isInitialized || !_isEnabled || _currentSession == null) return;
 
     try {
       await _uploader!.identifyUser(_currentSession!.deviceId, userId);

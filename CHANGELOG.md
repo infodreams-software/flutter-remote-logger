@@ -1,3 +1,10 @@
+## 0.2.0
+* **Session Synchronization**: Added automatic session ID synchronization with native Android logs using a file-based lock mechanism.
+* **Platform Suffix**: Log files are now saved with a `.flutter.jsonl` suffix to distinguish them from native logs.
+* **Device ID**: Exposed `deviceId` getter for easy retrieval of the unique device identifier.
+* **Disable Logging**: Added `isEnabled` parameter to `initialize()` to globally disable logging and uploading.
+* **Internal**: Implemented `SessionSynchronizer` logic.
+
 ## 0.1.3
 * Added `time` field to `LogEntry` for human-readable ISO-8601 timestamps.
 * Automatic upload of `device_info.json` to the device's log folder for easier identification.

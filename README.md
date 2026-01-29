@@ -179,7 +179,14 @@ void main() async {
       // Optional: configuration
       // bucketName: 'my_logs',
     ),
+  await RemoteLogger().initialize(
+    // ...
+    // Optional: Disable logging globally (e.g. in production based on a remote config)
+    isEnabled: true,
   );
+
+  // You can now access the stable Device ID used for sessions
+  print('Device ID: ${RemoteLogger().deviceId}');
 
   runApp(MyApp());
 }
