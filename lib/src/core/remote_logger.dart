@@ -97,7 +97,9 @@ class RemoteLogger {
         sessionId: _sessionManager!.sessionId,
         deviceId: deviceId,
         startTime: _sessionManager!.startTime,
+
         deviceMetadata: deviceMetadata,
+        groupSessionId: finalGroupId,
       );
 
       await _storage!.initialize(

@@ -3,6 +3,7 @@ class SessionInfo {
   final String deviceId;
   final int startTime;
   final String? userId; // Nullable, can be linked later
+  final String? groupSessionId;
   final Map<String, dynamic> deviceMetadata;
 
   SessionInfo({
@@ -10,6 +11,7 @@ class SessionInfo {
     required this.deviceId,
     required this.startTime,
     this.userId,
+    this.groupSessionId,
     this.deviceMetadata = const {},
   });
 
@@ -19,6 +21,7 @@ class SessionInfo {
       'deviceId': deviceId,
       'startTime': startTime,
       'userId': userId,
+      'groupSessionId': groupSessionId,
       'deviceMetadata': deviceMetadata,
     };
   }

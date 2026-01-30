@@ -37,8 +37,11 @@ class SupabaseLogUploader implements LogUploader {
 
   @override
   Future<void> uploadSession(File logFile, SessionInfo sessionInfo) async {
+    final suffix = sessionInfo.groupSessionId != null
+        ? '_${sessionInfo.groupSessionId}'
+        : '';
     final fileName =
-        '${sessionInfo.deviceId}/${sessionInfo.sessionId}.flutter.jsonl';
+        '${sessionInfo.deviceId}/log_${sessionInfo.sessionId}$suffix.flutter.jsonl';
 
     // 1. Upload file to Storage
     await _supabase.storage

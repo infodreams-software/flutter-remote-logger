@@ -1,3 +1,7 @@
+## 0.2.3
+* **Supabase Upload**: Filenames now include `groupSessionId` if present (e.g. `log_UUID_GROUPID.flutter.jsonl`) to enable easier coupling with other platform logs.
+* **Session Info**: Added `groupSessionId` to `SessionInfo` model.
+
 ## 0.2.2
 * **Device ID**: Changed Android Device ID generation to use `android_id` (Settings.Secure.ANDROID_ID) instead of `Build.ID` to match native Android behavior and ensure consistency.
 
