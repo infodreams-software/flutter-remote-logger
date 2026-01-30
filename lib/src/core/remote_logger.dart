@@ -73,10 +73,13 @@ class RemoteLogger {
     _deviceInfoProvider = deviceInfoProvider ?? DeviceInfoProvider();
 
     // Determine groupSessionId
+    // Determine groupSessionId
     String? finalGroupId = groupSessionId;
     if (finalGroupId == null) {
       // If no group ID provided, try to synchronize with other platforms
       // This is a "best effort" synchronization
+      // check if Platform is Android, because only Android has shared file system access with native
+      // (actually iOS path depends on implementation, but for now we focus on Android parity)
       try {
         final synchronizer = SessionSynchronizer();
         finalGroupId = await synchronizer.getOrGenerateSessionId();

@@ -1,3 +1,6 @@
+## 0.2.4
+* **Cross-Platform Synchronization**: Added `SessionSynchronizer` to ensure Flutter and Android logs share the same `groupSessionId` by reading/writing a shared lock file (`session.lock`) in the app's document directory.
+
 ## 0.2.3
 * **Supabase Upload**: Filenames now include `groupSessionId` if present (e.g. `log_UUID_GROUPID.flutter.jsonl`) to enable easier coupling with other platform logs.
 * **Session Info**: Added `groupSessionId` to `SessionInfo` model.
