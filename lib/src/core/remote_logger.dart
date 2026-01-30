@@ -13,8 +13,10 @@ import '../models/remote_logger_event.dart';
 import '../uploader/firebase_uploader.dart';
 
 class RemoteLogger {
+  /// The singleton instance of [RemoteLogger].
   static final RemoteLogger _instance = RemoteLogger._internal();
 
+  /// Returns the singleton instance.
   factory RemoteLogger() => _instance;
 
   RemoteLogger._internal();
@@ -54,7 +56,9 @@ class RemoteLogger {
     bool isEnabled = true,
     String? groupSessionId,
   }) async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      return;
+    }
 
     _isEnabled = isEnabled;
     if (!_isEnabled) {
@@ -131,8 +135,9 @@ class RemoteLogger {
     if (!_isEnabled ||
         _storage == null ||
         _uploader == null ||
-        _currentSession == null)
+        _currentSession == null) {
       return;
+    }
 
     try {
       final oldFiles = await _storage!.getOldSessionFiles(
@@ -194,8 +199,9 @@ class RemoteLogger {
     Map<String, dynamic>? payload,
   }) async {
     if (!_isInitialized || !_isEnabled) {
-      if (!_isEnabled && _isInitialized)
+      if (!_isEnabled && _isInitialized) {
         return; // Silent return if explicitly disabled
+      }
       debugPrint('RemoteLogger not initialized. Dropping log: $message');
       return;
     }
@@ -215,7 +221,9 @@ class RemoteLogger {
 
   /// Force upload of the current session logs.
   Future<void> uploadCurrentSession() async {
-    if (!_isInitialized || !_isEnabled || _currentSession == null) return;
+    if (!_isInitialized || !_isEnabled || _currentSession == null) {
+      return;
+    }
 
     final file = await _storage!.getSessionFile();
     if (file != null && await file.exists()) {
@@ -247,7 +255,9 @@ class RemoteLogger {
 
   /// Link the current device to a specific user.
   Future<void> identifyUser(String userId) async {
-    if (!_isInitialized || !_isEnabled || _currentSession == null) return;
+    if (!_isInitialized || !_isEnabled || _currentSession == null) {
+      return;
+    }
 
     try {
       await _uploader!.identifyUser(_currentSession!.deviceId, userId);

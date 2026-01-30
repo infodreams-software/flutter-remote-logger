@@ -1,3 +1,8 @@
+## 0.2.1
+* Improved documentation for pub.dev compliance.
+* Fixed lints regarding braces in control flow structures.
+* Validated `.flutter.jsonl` suffix for log files.
+
 ## 0.2.0
 * **Session Synchronization**: Added automatic session ID synchronization with native Android logs using a file-based lock mechanism.
 * **Platform Suffix**: Log files are now saved with a `.flutter.jsonl` suffix to distinguish them from native logs.

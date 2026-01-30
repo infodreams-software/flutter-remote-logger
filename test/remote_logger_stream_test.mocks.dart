@@ -39,9 +39,13 @@ class MockLogStorage extends _i1.Mock implements _i2.LogStorage {
   }
 
   @override
-  _i3.Future<void> initialize(String? sessionId) =>
+  _i3.Future<void> initialize(String? sessionId, {String? groupSessionId}) =>
       (super.noSuchMethod(
-            Invocation.method(#initialize, [sessionId]),
+            Invocation.method(
+              #initialize,
+              [sessionId],
+              {#groupSessionId: groupSessionId},
+            ),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

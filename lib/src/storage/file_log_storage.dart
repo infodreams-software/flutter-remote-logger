@@ -4,10 +4,21 @@ import 'package:path_provider/path_provider.dart';
 import '../models/log_entry.dart';
 import 'log_storage.dart';
 
+/// A [LogStorage] implementation that writes logs to the local file system.
+///
+/// Logs are stored in the application documents directory under a `logs` subdirectory.
+/// Filenames include the session ID and a `.flutter.jsonl` suffix.
 class FileLogStorage implements LogStorage {
   File? _currentFile;
 
+  /// Creates a new [FileLogStorage] instance.
+  FileLogStorage();
+
   @override
+  /// Initializes the storage for a specific session.
+  ///
+  /// [sessionId] is the unique identifier for the current session.
+  /// [groupSessionId] is an optional identifier to group multiple sessions (e.g. across platforms).
   Future<void> initialize(String sessionId, {String? groupSessionId}) async {
     final dir = await getApplicationDocumentsDirectory();
     final logDir = Directory('${dir.path}/logs');
@@ -19,6 +30,7 @@ class FileLogStorage implements LogStorage {
   }
 
   @override
+  /// Writes a [LogEntry] to the current log file as a JSON line.
   Future<void> write(LogEntry entry) async {
     if (_currentFile == null) return;
     final jsonLine = jsonEncode(entry.toJson());
@@ -26,11 +38,15 @@ class FileLogStorage implements LogStorage {
   }
 
   @override
+  /// Returns the current session's log file, if initialized.
   Future<File?> getSessionFile() async {
     return _currentFile;
   }
 
   @override
+  /// Retrieves a list of log files from previous sessions.
+  ///
+  /// Excludes the file corresponding to [currentSessionId].
   Future<List<File>> getOldSessionFiles(String currentSessionId) async {
     final dir = await getApplicationDocumentsDirectory();
     final logDir = Directory('${dir.path}/logs');
