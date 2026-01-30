@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:android_id/android_id.dart';
 import 'package:flutter/foundation.dart';
 
 class DeviceInfoProvider {
@@ -45,8 +46,9 @@ class DeviceInfoProvider {
   Future<String> getDeviceId() async {
     try {
       if (Platform.isAndroid) {
-        final info = await _deviceInfo.androidInfo;
-        return info.id;
+        const androidIdPlugin = AndroidId();
+        final String? androidId = await androidIdPlugin.getId();
+        return androidId ?? 'unknown_android';
       } else if (Platform.isIOS) {
         final info = await _deviceInfo.iosInfo;
         return info.identifierForVendor ?? 'unknown_ios';

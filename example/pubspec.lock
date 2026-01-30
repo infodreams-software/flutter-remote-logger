@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  android_id:
+    dependency: transitive
+    description:
+      name: android_id
+      sha256: "50d62501d623a7e7358b3ceffd1bdd9b420292eba66cec8347d33ed10791f28e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
   app_links:
     dependency: transitive
     description:
@@ -260,7 +268,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1-beta1"
+    version: "0.2.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter

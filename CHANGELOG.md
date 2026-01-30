@@ -1,3 +1,6 @@
+## 0.2.2
+* **Device ID**: Changed Android Device ID generation to use `android_id` (Settings.Secure.ANDROID_ID) instead of `Build.ID` to match native Android behavior and ensure consistency.
+
 ## 0.2.1
 * Improved documentation for pub.dev compliance.
 * Fixed lints regarding braces in control flow structures.

@@ -179,9 +179,8 @@ void main() async {
       // Optional: configuration
       // bucketName: 'my_logs',
     ),
-  await RemoteLogger().initialize(
-    // ...
-    // Optional: Disable logging globally (e.g. in production based on a remote config)
+    ),
+    // Optional: Disable logging globally
     isEnabled: true,
   );
 
