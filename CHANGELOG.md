@@ -1,3 +1,6 @@
+## 0.2.5
+* **Improved Sync**: Refined synchronization logic to use Process ID (PID) matching instead of file modification time. This prevents race conditions and ensures more robust coupling between Flutter and Native environments running in the same process.
+
 ## 0.2.4
 * **Cross-Platform Synchronization**: Added `SessionSynchronizer` to ensure Flutter and Android logs share the same `groupSessionId` by reading/writing a shared lock file (`session.lock`) in the app's document directory.
 

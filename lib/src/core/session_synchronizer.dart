@@ -5,14 +5,14 @@ import 'package:uuid/uuid.dart';
 /// Synchronizes session IDs across platforms (Flutter/Android) using a shared lock file.
 class SessionSynchronizer {
   static const String _lockFileName = 'session.lock';
-  static const int _freshnessThresholdMs = 5000; // 5 seconds
 
   /// Returns a synchronized session ID.
   ///
   /// Algorithm:
   /// 1. Check if `session.lock` exists in app supported documents directory.
-  /// 2. If valid (modified < 5s ago), read and return ID.
-  /// 3. Else, generate new ID, overwrite file, and return new ID.
+  /// 2. Read content (Format: "PID:SESSION_ID").
+  /// 3. If file PID matches current process PID, return SESSION_ID.
+  /// 4. Else, generate new ID, overwrite file with "PID:NEW_ID", and return new ID.
   ///
   /// Note: [getApplicationSupportDirectory] maps to `context.filesDir` on Android,
   /// matching the path used by the native library.
@@ -20,24 +20,30 @@ class SessionSynchronizer {
     try {
       final dir = await getApplicationSupportDirectory();
       final lockFile = File('${dir.path}/$_lockFileName');
+      final currentPid = pid; // dart:io pid returns current process ID
 
       if (await lockFile.exists()) {
-        final lastModified = await lockFile.lastModified();
-        final now = DateTime.now();
-        final difference = now.difference(lastModified).inMilliseconds.abs();
-
-        if (difference < _freshnessThresholdMs) {
+        try {
           final content = await lockFile.readAsString();
-          final id = content.trim();
-          if (id.isNotEmpty) {
-            return id;
+          final parts = content.trim().split(':');
+
+          if (parts.length == 2) {
+            final filePid = int.tryParse(parts[0]);
+            final sessionId = parts[1];
+
+            if (filePid == currentPid && sessionId.isNotEmpty) {
+              // Reuse session if PID matches
+              return sessionId;
+            }
           }
+        } catch (e) {
+          // Ignore read/parse errors
         }
       }
 
-      // Generate new ID if file doesn't exist or is stale
+      // Generate new ID if file doesn't exist or is stale/PID mismatch
       final newId = const Uuid().v4();
-      await lockFile.writeAsString(newId);
+      await lockFile.writeAsString('$currentPid:$newId');
       return newId;
     } catch (e) {
       // Fallback in case of IO errors
