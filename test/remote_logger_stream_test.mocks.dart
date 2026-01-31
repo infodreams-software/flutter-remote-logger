@@ -61,6 +61,12 @@ class MockLogStorage extends _i1.Mock implements _i2.LogStorage {
           as _i3.Future<void>);
 
   @override
+  void writeSync(_i4.LogEntry? entry) => super.noSuchMethod(
+    Invocation.method(#writeSync, [entry]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
   _i3.Future<_i5.File?> getSessionFile() =>
       (super.noSuchMethod(
             Invocation.method(#getSessionFile, []),

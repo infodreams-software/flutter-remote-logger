@@ -197,12 +197,15 @@ class RemoteLogger {
   }
 
   /// Log a message.
-  Future<void> log(
+  ///
+  /// This method is now synchronous to ensure logs are written immediately.
+  /// It keeps void return type so existing `await` calls are still valid (awaiting void).
+  void log(
     String message, {
     String level = 'INFO',
     String tag = 'APP',
     Map<String, dynamic>? payload,
-  }) async {
+  }) {
     if (!_isInitialized || !_isEnabled) {
       if (!_isEnabled && _isInitialized) {
         return; // Silent return if explicitly disabled
@@ -221,7 +224,7 @@ class RemoteLogger {
       payload: payload,
     );
 
-    await _storage!.write(entry);
+    _storage!.writeSync(entry);
   }
 
   /// Force upload of the current session logs.

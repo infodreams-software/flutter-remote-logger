@@ -38,6 +38,13 @@ class FileLogStorage implements LogStorage {
   }
 
   @override
+  void writeSync(LogEntry entry) {
+    if (_currentFile == null) return;
+    final jsonLine = jsonEncode(entry.toJson());
+    _currentFile!.writeAsStringSync('$jsonLine\n', mode: FileMode.append);
+  }
+
+  @override
   /// Returns the current session's log file, if initialized.
   Future<File?> getSessionFile() async {
     return _currentFile;

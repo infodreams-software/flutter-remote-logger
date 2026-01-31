@@ -1,3 +1,6 @@
+## 0.2.6
+* **Synchronous Logging**: The `log()` method is now synchronous (`void` return type) and uses blocking file I/O. This ensures logs are written before the application exits or proceeds, eliminating race conditions. Compatibility with existing `await log()` calls is preserved (awaiting void).
+
 ## 0.2.5
 * **Improved Sync**: Refined synchronization logic to use Process ID (PID) matching instead of file modification time. This prevents race conditions and ensures more robust coupling between Flutter and Native environments running in the same process.
 

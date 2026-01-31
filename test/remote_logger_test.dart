@@ -52,19 +52,13 @@ void main() {
       mockUploader.uploadDeviceInfo('test-device-id', {'platform': 'test'}),
     ).called(1);
 
-    await logger.log('Test message');
-    verify(
-      mockStorage.write(
-        argThat(
-          predicate<LogEntry>(
-            (entry) =>
-                entry.message == 'Test message' &&
-                entry.level == 'INFO' &&
-                entry.time.isNotEmpty, // Check time field
-          ),
-        ),
-      ),
-    ).called(1);
+    logger.log('Test message');
+    final captured = verify(mockStorage.writeSync(captureAny)).captured;
+    final entry = captured.first as LogEntry;
+
+    expect(entry.message, equals('Test message'));
+    expect(entry.level, equals('INFO'));
+    expect(entry.time, isNotEmpty);
   });
 
   test('RemoteLogger identify user', () async {
