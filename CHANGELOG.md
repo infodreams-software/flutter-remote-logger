@@ -1,3 +1,6 @@
+## 0.3.1
+* **iOS ID Persistence**: Implemented Keychain storage (via `flutter_secure_storage`) for iOS Device ID. This ensures the ID persists even if the app is uninstalled and reinstalled, matching the behavior of `android_id` on Android.
+
 ## 0.3.0
 * **Device ID Persistence**: Restored `android_id` usage for Android to ensure Device ID persists across app re-installs. This may cause the package to be labeled as "Android Only" on pub.dev, but it is necessary for consistent identification.
 * **Nested Remote Paths**: Added `remotePath` parameter to `RemoteLogger.initialize()`. This allows checking logs into custom folder structures (e.g. `project_b/v1.0/`) in the remote storage bucket.

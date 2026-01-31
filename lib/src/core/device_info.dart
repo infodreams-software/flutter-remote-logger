@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:android_id/android_id.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DeviceInfoProvider {
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
@@ -46,14 +47,31 @@ class DeviceInfoProvider {
   Future<String> getDeviceId() async {
     try {
       if (Platform.isAndroid) {
-        final info = await _deviceInfo.androidInfo;
-        return info
-            .id; // Build.ID (Not Settings.Secure.ANDROID_ID, but cross-platform safe)
+        // Use android_id for persistence across installs on Android
+        const androidIdPlugin = AndroidId();
+        final String? androidId = await androidIdPlugin.getId();
+        return androidId ?? 'unknown_android';
       } else if (Platform.isIOS) {
-        final info = await _deviceInfo.iosInfo;
-        return info.identifierForVendor ?? 'unknown_ios';
+        // Use Secure Storage (Keychain) for persistence across installs on iOS
+        try {
+          const storage = FlutterSecureStorage();
+          final storedId = await storage.read(key: 'remote_logger_device_id');
+          if (storedId != null && storedId.isNotEmpty) {
+            return storedId;
+          }
+
+          final info = await _deviceInfo.iosInfo;
+          final newId = info.identifierForVendor ?? 'unknown_ios';
+
+          await storage.write(key: 'remote_logger_device_id', value: newId);
+          return newId;
+        } catch (e) {
+          // Fallback if Secure Storage fails (e.g. dev environment issues)
+          final info = await _deviceInfo.iosInfo;
+          return info.identifierForVendor ?? 'unknown_ios';
+        }
       }
-      // Fallback for others or if method fails
+      // Fallback for others (Web, Desktop)
       return 'unknown_device';
     } catch (e) {
       return 'unknown_error';
