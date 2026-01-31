@@ -198,14 +198,18 @@ class RemoteLogger {
 
   /// Log a message.
   ///
-  /// This method is now synchronous to ensure logs are written immediately.
-  /// It keeps void return type so existing `await` calls are still valid (awaiting void).
-  void log(
+  /// This method uses synchronous I/O (`writeSync`) to ensure logs are written immediately.
+  /// It returns [Future<void>] to maintain compatibility with existing `await` calls.
+  ///
+  /// Note: Although marked `async`, this function executes synchronously until the
+  /// first `await` (which doesn't exist here), effectively blocking until the write is complete.
+  /// We keep `async` to wrap any synchronous exceptions into a returned Future.
+  Future<void> log(
     String message, {
     String level = 'INFO',
     String tag = 'APP',
     Map<String, dynamic>? payload,
-  }) {
+  }) async {
     if (!_isInitialized || !_isEnabled) {
       if (!_isEnabled && _isInitialized) {
         return; // Silent return if explicitly disabled

@@ -1,3 +1,6 @@
+## 0.2.7
+* **API Compatibility**: Restored `Future<void>` return type to `log()` method to fix build errors with existing `await` calls. The implementation remains synchronous (blocking I/O) for safety, but wrapped in a Future.
+
 ## 0.2.6
 * **Synchronous Logging**: The `log()` method is now synchronous (`void` return type) and uses blocking file I/O. This ensures logs are written before the application exits or proceeds, eliminating race conditions. Compatibility with existing `await log()` calls is preserved (awaiting void).
 

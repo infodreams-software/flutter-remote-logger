@@ -52,7 +52,7 @@ void main() {
       mockUploader.uploadDeviceInfo('test-device-id', {'platform': 'test'}),
     ).called(1);
 
-    logger.log('Test message');
+    await logger.log('Test message');
     final captured = verify(mockStorage.writeSync(captureAny)).captured;
     final entry = captured.first as LogEntry;
 
