@@ -36,12 +36,17 @@ class SupabaseLogUploader implements LogUploader {
        _deviceLinksTable = deviceLinksTable;
 
   @override
-  Future<void> uploadSession(File logFile, SessionInfo sessionInfo) async {
+  Future<void> uploadSession(
+    File logFile,
+    SessionInfo sessionInfo, {
+    String? path,
+  }) async {
     final suffix = sessionInfo.groupSessionId != null
         ? '_${sessionInfo.groupSessionId}'
         : '';
+    final pathPrefix = path != null ? '$path/' : '';
     final fileName =
-        '${sessionInfo.deviceId}/log_${sessionInfo.sessionId}$suffix.flutter.jsonl';
+        '$pathPrefix${sessionInfo.deviceId}/log_${sessionInfo.sessionId}$suffix.flutter.jsonl';
 
     // 1. Upload file to Storage
     await _supabase.storage
@@ -105,9 +110,11 @@ class SupabaseLogUploader implements LogUploader {
   @override
   Future<void> uploadDeviceInfo(
     String deviceId,
-    Map<String, dynamic> deviceInfo,
-  ) async {
-    final fileName = '$deviceId/device_info.json';
+    Map<String, dynamic> deviceInfo, {
+    String? path,
+  }) async {
+    final pathPrefix = path != null ? '$path/' : '';
+    final fileName = '$pathPrefix$deviceId/device_info.json';
     final jsonString = jsonEncode(deviceInfo);
 
     // Supabase storage 'uploadBinary' takes Uint8List

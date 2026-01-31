@@ -26,6 +26,7 @@ class RemoteLogger {
   SessionManager? _sessionManager;
   DeviceInfoProvider? _deviceInfoProvider;
 
+  String? _remotePath;
   SessionInfo? _currentSession;
   bool _isInitialized = false;
   bool _isEnabled = true;
@@ -55,6 +56,7 @@ class RemoteLogger {
     Duration? autoUploadFrequency,
     bool isEnabled = true,
     String? groupSessionId,
+    String? remotePath,
   }) async {
     if (_isInitialized) {
       return;
@@ -71,6 +73,7 @@ class RemoteLogger {
     _uploader = uploader ?? FirebaseLogUploader();
     _sessionManager = sessionManager ?? SessionManager();
     _deviceInfoProvider = deviceInfoProvider ?? DeviceInfoProvider();
+    _remotePath = remotePath;
 
     // Determine groupSessionId
     // Determine groupSessionId
@@ -113,7 +116,11 @@ class RemoteLogger {
       // Upload general device info file for easier identification
       // ... rest of the method unchanged
       try {
-        await _uploader!.uploadDeviceInfo(deviceId, deviceMetadata);
+        await _uploader!.uploadDeviceInfo(
+          deviceId,
+          deviceMetadata,
+          path: _remotePath,
+        );
       } catch (e) {
         log('Failed to upload device info: $e', level: 'WARNING');
       }
@@ -171,7 +178,11 @@ class RemoteLogger {
           userId: _currentSession!.userId,
         );
 
-        await _uploader!.uploadSession(file, recoveredSession);
+        await _uploader!.uploadSession(
+          file,
+          recoveredSession,
+          path: _remotePath,
+        );
 
         // Delete after successful upload to avoid re-uploading
         await file.delete();
@@ -240,7 +251,11 @@ class RemoteLogger {
     final file = await _storage!.getSessionFile();
     if (file != null && await file.exists()) {
       try {
-        await _uploader!.uploadSession(file, _currentSession!);
+        await _uploader!.uploadSession(
+          file,
+          _currentSession!,
+          path: _remotePath,
+        );
         log('Session uploaded successfully', tag: 'REMOTE_LOGGER');
         _eventController.add(
           RemoteLoggerSuccess(
@@ -309,5 +324,6 @@ class RemoteLogger {
     _uploader = null;
     _sessionManager = null;
     _deviceInfoProvider = null;
+    _remotePath = null;
   }
 }

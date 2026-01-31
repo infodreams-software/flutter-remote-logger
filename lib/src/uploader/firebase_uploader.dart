@@ -14,9 +14,23 @@ class FirebaseLogUploader implements LogUploader {
       _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  Future<void> uploadSession(File logFile, SessionInfo sessionInfo) async {
+  Future<void> uploadSession(
+    File logFile,
+    SessionInfo sessionInfo, {
+    String? path,
+  }) async {
+    final pathPrefix = path != null ? '$path/' : 'logs/';
+    // If path is provided, use it. If not, default to 'logs/'.
+    // Wait, the original code used 'logs/'. If path is custom, should I overwrite 'logs/' or append?
+    // "logs/" seems to be a hardcoded base. The user "project/version" probably wants to replace or prepend.
+    // Let's assume user path replaces "logs/" or user path IS the base.
+    // If path is "project/v1", result: "project/v1/deviceId/..."
+    // original: "logs/deviceId/..."
+
+    final basePath = path != null ? path : 'logs';
+
     final ref = _storage.ref().child(
-      'logs/${sessionInfo.deviceId}/${sessionInfo.sessionId}.jsonl',
+      '$basePath/${sessionInfo.deviceId}/${sessionInfo.sessionId}.jsonl',
     );
 
     // Upload file
@@ -66,9 +80,11 @@ class FirebaseLogUploader implements LogUploader {
   @override
   Future<void> uploadDeviceInfo(
     String deviceId,
-    Map<String, dynamic> deviceInfo,
-  ) async {
-    final ref = _storage.ref().child('logs/$deviceId/device_info.json');
+    Map<String, dynamic> deviceInfo, {
+    String? path,
+  }) async {
+    final basePath = path != null ? path : 'logs';
+    final ref = _storage.ref().child('$basePath/$deviceId/device_info.json');
     await ref.putString(jsonEncode(deviceInfo));
   }
 }

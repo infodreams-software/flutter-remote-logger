@@ -1,3 +1,11 @@
+## 0.3.0
+* **Device ID Persistence**: Restored `android_id` usage for Android to ensure Device ID persists across app re-installs. This may cause the package to be labeled as "Android Only" on pub.dev, but it is necessary for consistent identification.
+* **Nested Remote Paths**: Added `remotePath` parameter to `RemoteLogger.initialize()`. This allows checking logs into custom folder structures (e.g. `project_b/v1.0/`) in the remote storage bucket.
+* **Breaking Change**: `LogUploader` interface methods `uploadSession` and `uploadDeviceInfo` now accept an optional `path` parameter.
+
+## 0.2.8
+* **Cross-Platform Support**: Removed dependency on `android_id` to ensure the package is recognized as supporting non-Android platforms (iOS, Web, etc.). Android Device ID now falls back to `Build.ID` via `device_info_plus`. (Reverted in 0.3.0 due to lack of persistence).
+
 ## 0.2.7
 * **API Compatibility**: Restored `Future<void>` return type to `log()` method to fix build errors with existing `await` calls. The implementation remains synchronous (blocking I/O) for safety, but wrapped in a Future.
 

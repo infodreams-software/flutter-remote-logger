@@ -35,6 +35,7 @@ void main() {
     ).thenAnswer((_) async => 'test-device-id');
     when(mockStorage.initialize(any)).thenAnswer((_) async {});
     when(mockStorage.write(any)).thenAnswer((_) async {});
+    when(mockStorage.getOldSessionFiles(any)).thenAnswer((_) async => []);
   });
 
   test('RemoteLogger initialization and logging', () async {
@@ -45,16 +46,23 @@ void main() {
       deviceInfoProvider: mockDeviceInfoProvider,
     );
 
-    verify(mockStorage.initialize('test-session-id')).called(1);
+    verify(
+      mockStorage.initialize(
+        'test-session-id',
+        groupSessionId: anyNamed('groupSessionId'),
+      ),
+    ).called(1);
 
     // Verify device info upload
     verify(
-      mockUploader.uploadDeviceInfo('test-device-id', {'platform': 'test'}),
+      mockUploader.uploadDeviceInfo('test-device-id', {
+        'platform': 'test',
+      }, path: anyNamed('path')),
     ).called(1);
 
     await logger.log('Test message');
     final captured = verify(mockStorage.writeSync(captureAny)).captured;
-    final entry = captured.first as LogEntry;
+    final entry = captured.last as LogEntry;
 
     expect(entry.message, equals('Test message'));
     expect(entry.level, equals('INFO'));

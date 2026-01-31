@@ -94,10 +94,15 @@ class MockLogUploader extends _i1.Mock implements _i6.LogUploader {
   @override
   _i3.Future<void> uploadSession(
     _i5.File? logFile,
-    _i7.SessionInfo? sessionInfo,
-  ) =>
+    _i7.SessionInfo? sessionInfo, {
+    String? path,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#uploadSession, [logFile, sessionInfo]),
+            Invocation.method(
+              #uploadSession,
+              [logFile, sessionInfo],
+              {#path: path},
+            ),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -115,10 +120,15 @@ class MockLogUploader extends _i1.Mock implements _i6.LogUploader {
   @override
   _i3.Future<void> uploadDeviceInfo(
     String? deviceId,
-    Map<String, dynamic>? deviceInfo,
-  ) =>
+    Map<String, dynamic>? deviceInfo, {
+    String? path,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#uploadDeviceInfo, [deviceId, deviceInfo]),
+            Invocation.method(
+              #uploadDeviceInfo,
+              [deviceId, deviceInfo],
+              {#path: path},
+            ),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

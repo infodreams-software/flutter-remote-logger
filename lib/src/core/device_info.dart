@@ -46,9 +46,9 @@ class DeviceInfoProvider {
   Future<String> getDeviceId() async {
     try {
       if (Platform.isAndroid) {
-        const androidIdPlugin = AndroidId();
-        final String? androidId = await androidIdPlugin.getId();
-        return androidId ?? 'unknown_android';
+        final info = await _deviceInfo.androidInfo;
+        return info
+            .id; // Build.ID (Not Settings.Secure.ANDROID_ID, but cross-platform safe)
       } else if (Platform.isIOS) {
         final info = await _deviceInfo.iosInfo;
         return info.identifierForVendor ?? 'unknown_ios';
