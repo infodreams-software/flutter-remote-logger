@@ -19,7 +19,6 @@ class FirebaseLogUploader implements LogUploader {
     SessionInfo sessionInfo, {
     String? path,
   }) async {
-    final pathPrefix = path != null ? '$path/' : 'logs/';
     // If path is provided, use it. If not, default to 'logs/'.
     // Wait, the original code used 'logs/'. If path is custom, should I overwrite 'logs/' or append?
     // "logs/" seems to be a hardcoded base. The user "project/version" probably wants to replace or prepend.

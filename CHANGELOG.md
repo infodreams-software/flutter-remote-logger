@@ -1,3 +1,9 @@
+## 0.3.4
+* **Fix**: Removed unused variables in uploaders.
+* **Feat**: Added persistent device ID support for Desktop platforms (Windows, macOS, Linux).
+* **Docs**: Improved API documentation.
+* **Tests**: Added unit tests for Desktop device ID generation.
+
 ## 0.3.3
 * **Robustness**: Enhanced error handling in `uploadCurrentSession` to prevent app crashes during file operations when storage is inaccessible.
 * **Documentation**: Added comprehensive SQL setup script for Supabase configuration in `README.md`.

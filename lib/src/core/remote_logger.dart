@@ -42,12 +42,16 @@ class RemoteLogger {
 
   Timer? _uploadTimer;
 
-  /// Initialize the logger.
-  /// [storage] defaults to [FileLogStorage].
-  /// [uploader] defaults to [FirebaseLogUploader].
-  /// [sessionManager] and [deviceInfoProvider] can be injected for testing.
-  /// [autoUploadFrequency] if provided, triggers periodic uploads of the current session.
-  /// [isEnabled] defaults to true. If false, logging and uploading are disabled.
+  /// Initializes the remote logger.
+  ///
+  /// This must be called before any logging can occur.
+  ///
+  /// - [storage]: The storage implementation to use (default: [FileLogStorage]).
+  /// - [uploader]: The uploader implementation to use (default: [FirebaseLogUploader]).
+  /// - [autoUploadFrequency]: If provided, logs will be automatically uploaded at this interval.
+  /// - [isEnabled]: Master switch for logging. If false, no logs are recorded or uploaded.
+  /// - [remotePath]: A custom path prefix for remote storage (e.g., `'my-project/v2'`).
+  /// - [groupSessionId]: An optional ID to group sessions across different platforms/devices.
   Future<void> initialize({
     LogStorage? storage,
     LogUploader? uploader,
