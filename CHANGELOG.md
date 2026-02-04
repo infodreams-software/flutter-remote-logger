@@ -1,3 +1,7 @@
+## 0.3.3
+* **Robustness**: Enhanced error handling in `uploadCurrentSession` to prevent app crashes during file operations when storage is inaccessible.
+* **Documentation**: Added comprehensive SQL setup script for Supabase configuration in `README.md`.
+
 ## 0.3.2
 * **Maintenance**: Host app compatibility update. Upgraded `flutter_secure_storage` dependency to `^10.0.0`.
 
