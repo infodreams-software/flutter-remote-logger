@@ -63,11 +63,61 @@ You need to choose a backend to store your logs.
 To use Supabase, you need to set up your project with the required tables and storage bucket.
 
 1.  **Dependencies**: Add `supabase_flutter` to your app.
-2.  **Storage Bucket**: Create a public bucket named `remote_logs`.
-3.  **Database Tables**: Run the following SQL in your Supabase SQL Editor:
-    *(See full SQL in [Configuration](#option-b-supabase) section above)*
+2.  **Run Setup SQL**: Login to your Supabase Dashboard, go to the **SQL Editor**, and run the following script to create the necessary tables and buckets:
 
-4.  **RLS Policies**: Ensure correct RLS policies for `remote_log_sessions` (upsert) and storage objects (upload).
+```sql
+-- 1. Create Storage Bucket for logs
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('remote_logs', 'remote_logs', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Policy to allow uploading logs (Adjust capabilities as needed)
+CREATE POLICY "Allow public uploads" ON storage.objects
+FOR INSERT WITH CHECK ( bucket_id = 'remote_logs' );
+
+CREATE POLICY "Allow public reads" ON storage.objects
+FOR SELECT USING ( bucket_id = 'remote_logs' );
+
+-- 2. Create Sessions Table
+CREATE TABLE IF NOT EXISTS public.remote_log_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    session_id TEXT NOT NULL UNIQUE,
+    device_id TEXT NOT NULL,
+    start_time TIMESTAMP WITH TIME ZONE,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    user_id TEXT,
+    log_file_url TEXT,
+    custom_data JSONB DEFAULT '{}'::jsonb
+);
+
+-- 3. Create Device Links Table (for User Identity)
+CREATE TABLE IF NOT EXISTS public.remote_log_device_links (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    device_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    linked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Enable RLS (Security)
+ALTER TABLE public.remote_log_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.remote_log_device_links ENABLE ROW LEVEL SECURITY;
+
+-- 5. Create Open Policies (⚠️ FAST SETUP ONLY - Restrict in Production!)
+-- These policies allow anyone (even unauthenticated) to insert logs.
+CREATE POLICY "Enable insert for all" ON public.remote_log_sessions
+FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Enable select for all" ON public.remote_log_sessions
+FOR SELECT USING (true);
+
+CREATE POLICY "Enable insert for all" ON public.remote_log_device_links
+FOR INSERT WITH CHECK (true);
+```
+
+3.  **Reload Schema Cache**: After running the SQL, execute this command to ensure the API knows about the new tables:
+    ```sql
+    NOTIFY pgrst, 'reload config';
+    ```
 
 ## Usage
 

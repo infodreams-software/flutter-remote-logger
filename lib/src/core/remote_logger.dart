@@ -248,9 +248,9 @@ class RemoteLogger {
       return;
     }
 
-    final file = await _storage!.getSessionFile();
-    if (file != null && await file.exists()) {
-      try {
+    try {
+      final file = await _storage!.getSessionFile();
+      if (file != null && await file.exists()) {
         await _uploader!.uploadSession(
           file,
           _currentSession!,
@@ -263,20 +263,16 @@ class RemoteLogger {
             fileUrl: file.path,
           ),
         );
-      } catch (e, stack) {
-        log(
-          'Failed to upload session: $e',
-          level: 'ERROR',
-          tag: 'REMOTE_LOGGER',
-        );
-        _eventController.add(
-          RemoteLoggerError(
-            'Failed to upload session',
-            error: e,
-            stackTrace: stack,
-          ),
-        );
       }
+    } catch (e, stack) {
+      log('Failed to upload session: $e', level: 'ERROR', tag: 'REMOTE_LOGGER');
+      _eventController.add(
+        RemoteLoggerError(
+          'Failed to upload session',
+          error: e,
+          stackTrace: stack,
+        ),
+      );
     }
   }
 
