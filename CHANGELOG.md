@@ -2,6 +2,8 @@
 * **Fix**: Removed unused variables in uploaders.
 * **Feat**: Added persistent device ID support for Desktop platforms (Windows, macOS, Linux).
 * **Docs**: Improved API documentation.
+* **Refactor**: Removed `android_id` dependency. Android now uses a file-based UUID matching the Desktop implementation to allow multi-platform support on pub.dev.
+* **Tests**: Added unit tests for Desktop device ID generation.
 * **Tests**: Added unit tests for Desktop device ID generation.
 
 ## 0.3.3

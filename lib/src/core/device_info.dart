@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:android_id/android_id.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -61,11 +61,37 @@ class DeviceInfoProvider {
   /// *   **Web**: Returns `unknown_device` (no reliable persistence).
   Future<String> getDeviceId() async {
     try {
-      if (Platform.isAndroid) {
-        // Use android_id for persistence across installs on Android
-        const androidIdPlugin = AndroidId();
-        final String? androidId = await androidIdPlugin.getId();
-        return androidId ?? 'unknown_android';
+      if (Platform.isAndroid ||
+          Platform.isMacOS ||
+          Platform.isWindows ||
+          Platform.isLinux) {
+        // For Android and Desktop, we store a UUID in a file in Application Support (FilesDir on Android)
+        // This ensures:
+        // 1. Persistence across app restarts (but not uninstalls, which fits the user requirement)
+        // 2. Consistency between Flutter and Native Android (both access context.filesDir)
+        try {
+          final directory = await getApplicationSupportDirectory();
+          final file = File('${directory.path}/remote_logger_device_id');
+          if (await file.exists()) {
+            final storedId = await file.readAsString();
+            if (storedId.isNotEmpty) {
+              return storedId;
+            }
+          }
+
+          // Generate new ID
+          final newId = const Uuid().v4();
+          await file.create(recursive: true);
+          await file.writeAsString(newId);
+          return newId;
+        } catch (e) {
+          // Fallback
+          if (Platform.isMacOS) {
+            final info = await _deviceInfo.macOsInfo;
+            return info.systemGUID ?? 'unknown_macos_${const Uuid().v4()}';
+          }
+          return 'unknown_device_${const Uuid().v4()}';
+        }
       } else if (Platform.isIOS) {
         // Use Secure Storage (Keychain) for persistence across installs on iOS
         try {

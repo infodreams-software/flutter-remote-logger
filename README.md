@@ -26,8 +26,8 @@ A robust **Remote Logging and Profiling** package for Flutter applications.
 *   **Session-based Logging**: Every app launch creates a unique Session ID.
 *   **Automatic Metadata**: Captures OS, Version, Device Model, and more automatically.
 *   **Persistent Device ID**:
-    *   **Android**: Uses `android_id` for persistence.
-    *   **iOS**: Uses Keychain storage for persistence.
+    *   **Android**: Uses a **file-based UUID** stored in the app's internal files directory. This ensures the ID persists across app restarts (but not uninstalls) and is **consistent** between Flutter and Native Android logger instances.
+    *   **iOS**: Uses Keychain storage (`flutter_secure_storage`) for persistence across reinstalls.
     *   **Desktop**: Uses file-based storage in Application Support (macOS, Windows, Linux).
 *   **Nested Remote Paths**: Supports uploading logs to custom nested folder structures.
 *   **Local Buffering**: Logs are written synchronously to secure local storage (`.jsonl` files).
