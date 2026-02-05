@@ -1,3 +1,7 @@
+## 0.3.5
+* **Maintenance**: Finalized multiplatform support and removed legacy `android_id` references.
+* **Docs**: Updated documentation for 0.3.5 release.
+
 ## 0.3.4
 * **Fix**: Removed unused variables in uploaders.
 * **Feat**: Added persistent device ID support for Desktop platforms (Windows, macOS, Linux).
