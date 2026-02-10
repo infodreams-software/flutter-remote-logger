@@ -1,3 +1,7 @@
+## 0.3.6
+* **Fix**: Updated Supabase SQL schema in README to include missing columns (`app_version`, `os_version`, `device_model`) that are referenced in `SupabaseLogUploader` but were not in the original CREATE TABLE statement.
+* **Docs**: Added migration SQL for existing databases to add the missing columns.
+
 ## 0.3.5
 * **Maintenance**: Finalized multiplatform support and removed legacy `android_id` references.
 * **Docs**: Updated documentation for 0.3.5 release.

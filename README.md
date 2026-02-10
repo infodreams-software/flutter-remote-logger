@@ -89,6 +89,9 @@ CREATE TABLE IF NOT EXISTS public.remote_log_sessions (
     start_time TIMESTAMP WITH TIME ZONE,
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     user_id TEXT,
+    app_version TEXT,
+    os_version TEXT,
+    device_model TEXT,
     log_file_url TEXT,
     custom_data JSONB DEFAULT '{}'::jsonb
 );
@@ -101,11 +104,18 @@ CREATE TABLE IF NOT EXISTS public.remote_log_device_links (
     linked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Enable RLS (Security)
+-- 4. Migration for Existing Databases (if remote_log_sessions already exists)
+-- Run this ONLY if you already have the table and need to add the missing columns:
+ALTER TABLE public.remote_log_sessions
+ADD COLUMN IF NOT EXISTS app_version TEXT,
+ADD COLUMN IF NOT EXISTS os_version TEXT,
+ADD COLUMN IF NOT EXISTS device_model TEXT;
+
+-- 5. Enable RLS (Security)
 ALTER TABLE public.remote_log_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.remote_log_device_links ENABLE ROW LEVEL SECURITY;
 
--- 5. Create Open Policies (⚠️ FAST SETUP ONLY - Restrict in Production!)
+-- 6. Create Open Policies (⚠️ FAST SETUP ONLY - Restrict in Production!)
 -- These policies allow anyone (even unauthenticated) to insert logs.
 CREATE POLICY "Enable insert for all" ON public.remote_log_sessions
 FOR INSERT WITH CHECK (true);
