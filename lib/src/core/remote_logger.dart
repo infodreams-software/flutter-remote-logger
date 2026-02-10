@@ -41,6 +41,13 @@ class RemoteLogger {
   String? get deviceId => _currentSession?.deviceId;
 
   Timer? _uploadTimer;
+  Timer? _retryTimer;
+  int _retryAttempts = 0;
+  static const List<Duration> _retryDelays = [
+    Duration(minutes: 1),
+    Duration(minutes: 5),
+    Duration(minutes: 15),
+  ];
 
   /// Initializes the remote logger.
   ///
@@ -247,6 +254,14 @@ class RemoteLogger {
   }
 
   /// Force upload of the current session logs.
+  ///
+  /// If the upload fails, it will automatically retry with exponential backoff:
+  /// - 1st retry after 1 minute
+  /// - 2nd retry after 5 minutes
+  /// - 3rd retry after 15 minutes
+  ///
+  /// After 3 failed attempts, the file remains on disk and will be retried
+  /// on the next app launch via [_processOldSessions].
   Future<void> uploadCurrentSession() async {
     if (!_isInitialized || !_isEnabled || _currentSession == null) {
       return;
@@ -267,6 +282,10 @@ class RemoteLogger {
             fileUrl: file.path,
           ),
         );
+        // Reset retry state on success
+        _retryAttempts = 0;
+        _retryTimer?.cancel();
+        _retryTimer = null;
       }
     } catch (e, stack) {
       log('Failed to upload session: $e', level: 'ERROR', tag: 'REMOTE_LOGGER');
@@ -277,7 +296,35 @@ class RemoteLogger {
           stackTrace: stack,
         ),
       );
+
+      // Schedule retry with exponential backoff
+      _scheduleRetry();
     }
+  }
+
+  /// Schedules a retry attempt with exponential backoff.
+  void _scheduleRetry() {
+    if (_retryAttempts >= _retryDelays.length) {
+      log(
+        'Max retry attempts reached. File will be uploaded on next app launch.',
+        level: 'WARNING',
+        tag: 'REMOTE_LOGGER',
+      );
+      return;
+    }
+
+    final delay = _retryDelays[_retryAttempts];
+    _retryAttempts++;
+
+    log(
+      'Scheduling retry attempt $_retryAttempts in ${delay.inMinutes} minute(s)',
+      tag: 'REMOTE_LOGGER',
+    );
+
+    _retryTimer?.cancel();
+    _retryTimer = Timer(delay, () {
+      uploadCurrentSession();
+    });
   }
 
   /// Link the current device to a specific user.
@@ -315,6 +362,9 @@ class RemoteLogger {
   void reset() {
     _uploadTimer?.cancel();
     _uploadTimer = null;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _retryAttempts = 0;
     // Don't close _eventController here as it's broadcast and intended to live with the app singleton
     // But we might want to if simulating full shutdown.
     // Since it's a singleton, usually streams stay open.

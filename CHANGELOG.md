@@ -1,3 +1,8 @@
+## 0.3.7
+* **Feature**: Implemented automatic retry with exponential backoff for failed uploads (1min, 5min, 15min intervals).
+* **Robustness**: Upload failures no longer require manual intervention - the logger will automatically retry before falling back to retry-on-restart.
+* **Docs**: Documented upload retry behavior in README.
+
 ## 0.3.6
 * **Fix**: Updated Supabase SQL schema in README to include missing columns (`app_version`, `os_version`, `device_model`) that are referenced in `SupabaseLogUploader` but were not in the original CREATE TABLE statement.
 * **Docs**: Added migration SQL for existing databases to add the missing columns.
