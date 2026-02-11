@@ -125,6 +125,10 @@ FOR SELECT USING (true);
 
 CREATE POLICY "Enable insert for all" ON public.remote_log_device_links
 FOR INSERT WITH CHECK (true);
+
+-- Allow updating sessions (required for upsert operations)
+CREATE POLICY "Enable update for all" ON public.remote_log_sessions
+FOR UPDATE USING (true) WITH CHECK (true);
 ```
 
 3.  **Reload Schema Cache**: After running the SQL, execute this command to ensure the API knows about the new tables:
@@ -174,14 +178,12 @@ void main() async {
   );
 
   await RemoteLogger().initialize(
+    storage: FileLogStorage(),
     uploader: SupabaseLogUploader(
       supabaseClient: Supabase.instance.client,
-      // Optional: configuration
-      // bucketName: 'my_logs',
     ),
-    // Optional: Organize logs in a specific remote folder (e.g. project/version)
-    remotePath: 'my_app/production',
-    isEnabled: true,
+    autoUploadFrequency: const Duration(minutes: 5),
+    enableConsoleLog: kDebugMode, // Optional: print logs to console in debug mode
   );
 
   // You can now access the stable Device ID used for sessions

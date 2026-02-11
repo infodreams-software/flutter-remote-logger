@@ -48,43 +48,55 @@ class SupabaseLogUploader implements LogUploader {
     final fileName =
         '$pathPrefix${sessionInfo.deviceId}/log_${sessionInfo.sessionId}$suffix.flutter.jsonl';
 
-    // 1. Upload file to Storage
-    await _supabase.storage
-        .from(_storageBucket)
-        .upload(
-          fileName,
-          logFile,
-          fileOptions: const FileOptions(upsert: true),
-        );
+    try {
+      // 1. Upload file to Storage
+      await _supabase.storage
+          .from(_storageBucket)
+          .upload(
+            fileName,
+            logFile,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
-    final logFileUrl = _supabase.storage
-        .from(_storageBucket)
-        .getPublicUrl(fileName);
+      final logFileUrl = _supabase.storage
+          .from(_storageBucket)
+          .getPublicUrl(fileName);
 
-    // 2. Insert metadata into Table
-    // Extract details from deviceMetadata map
-    final metadata = sessionInfo.deviceMetadata;
+      // 2. Insert metadata into Table
+      // Extract details from deviceMetadata map
+      final metadata = sessionInfo.deviceMetadata;
 
-    // Convert int timestamp (ms) to ISO8601
-    final startTimeIso = DateTime.fromMillisecondsSinceEpoch(
-      sessionInfo.startTime,
-    ).toIso8601String();
+      // Convert int timestamp (ms) to ISO8601
+      final startTimeIso = DateTime.fromMillisecondsSinceEpoch(
+        sessionInfo.startTime,
+      ).toIso8601String();
 
-    final row = {
-      'session_id': sessionInfo.sessionId,
-      'device_id': sessionInfo.deviceId,
-      'start_time': startTimeIso,
-      // 'end_time': null, // SessionInfo doesn't track end time explicitly yet
-      'app_version': metadata['appVersion'],
-      'os_version': metadata['osVersion'],
-      'device_model': metadata['deviceModel'],
-      'user_id': sessionInfo.userId,
-      'custom_data': metadata, // Store full metadata as jsonb
-      'log_file_url': logFileUrl,
-      'uploaded_at': DateTime.now().toIso8601String(),
-    };
+      final row = {
+        'session_id': sessionInfo.sessionId,
+        'device_id': sessionInfo.deviceId,
+        'start_time': startTimeIso,
+        // 'end_time': null, // SessionInfo doesn't track end time explicitly yet
+        'app_version': metadata['appVersion'],
+        'os_version': metadata['osVersion'],
+        'device_model': metadata['deviceModel'],
+        'user_id': sessionInfo.userId,
+        'custom_data': metadata, // Store full metadata as jsonb
+        'log_file_url': logFileUrl,
+        'uploaded_at': DateTime.now().toIso8601String(),
+      };
 
-    await _supabase.from(_sessionsTable).upsert(row);
+      await _supabase
+          .from(_sessionsTable)
+          .upsert(
+            row,
+            onConflict: 'session_id', // Use session_id for conflict resolution
+          );
+    } catch (e) {
+      // Re-throw with better context for debugging
+      throw Exception(
+        'Failed to upload session ${sessionInfo.sessionId} to Supabase: $e',
+      );
+    }
   }
 
   @override

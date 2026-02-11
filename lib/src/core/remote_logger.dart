@@ -30,6 +30,7 @@ class RemoteLogger {
   SessionInfo? _currentSession;
   bool _isInitialized = false;
   bool _isEnabled = true;
+  bool _enableConsoleLog = false;
 
   final StreamController<RemoteLoggerEvent> _eventController =
       StreamController<RemoteLoggerEvent>.broadcast();
@@ -57,6 +58,7 @@ class RemoteLogger {
   /// - [uploader]: The uploader implementation to use (default: [FirebaseLogUploader]).
   /// - [autoUploadFrequency]: If provided, logs will be automatically uploaded at this interval.
   /// - [isEnabled]: Master switch for logging. If false, no logs are recorded or uploaded.
+  /// - [enableConsoleLog]: If true, logs will also be printed to the console/terminal.
   /// - [remotePath]: A custom path prefix for remote storage (e.g., `'my-project/v2'`).
   /// - [groupSessionId]: An optional ID to group sessions across different platforms/devices.
   Future<void> initialize({
@@ -66,6 +68,7 @@ class RemoteLogger {
     DeviceInfoProvider? deviceInfoProvider,
     Duration? autoUploadFrequency,
     bool isEnabled = true,
+    bool enableConsoleLog = true,
     String? groupSessionId,
     String? remotePath,
   }) async {
@@ -74,6 +77,7 @@ class RemoteLogger {
     }
 
     _isEnabled = isEnabled;
+    _enableConsoleLog = enableConsoleLog;
     if (!_isEnabled) {
       log('RemoteLogger disabled.', level: 'INFO', tag: 'REMOTE_LOGGER');
       _isInitialized = true;
@@ -251,6 +255,16 @@ class RemoteLogger {
     );
 
     _storage!.writeSync(entry);
+
+    if (_enableConsoleLog) {
+      if (level == 'ERROR') {
+        debugPrint('[$tag] 🔴 $level: $message');
+      } else if (level == 'WARNING') {
+        debugPrint('[$tag] 🟠 $level: $message');
+      } else {
+        debugPrint('[$tag] 🔵 $level: $message');
+      }
+    }
   }
 
   /// Force upload of the current session logs.
